@@ -1,4 +1,5 @@
-General documentation
+# NAND_MLP
+Multi layer perceptron model research project.
 
 Structure:
     * CLASS perceptron <- owns weights and bias
