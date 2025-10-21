@@ -1,0 +1,27 @@
+A CONTINUATION OF NAND MODEL TRAINING
+    - This project is for the purpose of studying multi layer perceptron models
+    - The work is a continuation of the previous work done on the NAND single layer perceptron
+
+10/21:
+    - Dropped in the perceptron class from quick_perceptron (original project)
+        - Added polish and separated some functionalities, works well
+    - Incorperated the beginnings of the model class
+        - Will host perceptrons and layers
+        - Encountered issues with populating. Iterating on and defining where perceptrons
+          are placed will be difficult with the setup
+    - Current guesses on structure:
+        - Another class , layer -> owns perceptrons
+        - modele -> will own layers
+        - creates a nice hierarchy
+
+THE QUESTION:
+    Can what was failed by the single perceptron be achieved by a 2 layer perceptron by using the same dataset.
+    * I'm looking for understanding of a decimal that's been included into the set, 0.5.
+      The single perceptron bacame incredibly confused and experienced platueas in guess rates.
+      My hope is that this will be avoided with this new model.
+    HYPOTHESIS:
+    * I have nothing to compare this to and have few expectations on the results. However, reading and my 
+      generic understanding of linear data leads me to believe that it may be possible for two perceptrons
+      to form a higher understanding of the data. 
+      I am assuming the model will converge on a way to split the work between both perceptrons (now called nodes)
+      which will make the problem linear between the two of them.
