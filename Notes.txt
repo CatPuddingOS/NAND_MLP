@@ -25,3 +25,27 @@ THE QUESTION:
       to form a higher understanding of the data. 
       I am assuming the model will converge on a way to split the work between both perceptrons (now called nodes)
       which will make the problem linear between the two of them.
+
+10/22:
+  * Work is hellishly slow, realizing now that I do not understand npz files all that well.
+  Some things were added / improved / changed
+  1. describe() now walks up the class hierarchy:
+    - violently hard to follow and could probably be reduced to a single call with the correct syntax
+      which I may look into.
+  2. The NAND_perceptron class was changed a bit to accomidate the dumpster fire called model.load()
+  3. model.save() and model.load()
+     - save works great. Same logic that the single layer quick_preceptron used to save the npz in my last
+       project.
+     - load is abysmal and poorly thought out. I got tired of the reading for npz files and landed
+       on an idea that worked but required some finagling and bad practice. 
+     - Final result is a system that is capable of saving and loading a model of pretty much any size
+       from an npz.
+
+  Some things to consider/research going forward:
+  1. Layers of differing sizes
+     - Some layers will gradually grow in size ie. input -> 3 node layer -> 4 node layer -> 3 node layer -> output
+       I have no idea what this means or why the size changes. Guess: Innermost hidden layers are most likely 
+       to learn new behavior? So more are present to potentially capture the behavior? As a perceptron model, 
+       it is likely irrelevant. This concept is likely better suited for sigmoid models, though I should do
+       more research. For now, having multiple nodes per layer is good for practice on my part.
+     - 

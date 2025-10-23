@@ -3,9 +3,9 @@ import pandas as pd
 import random as rand
 
 class NAND_perceptron:
-    def __init__(self, model = "none"):
-        self.weights = []
-        self.bias = 0.01
+    def __init__(self, weights, bias, model = "none"):
+        self.weights = weights
+        self.bias = bias
         self.weighted_sum = 0
         self.pred = 0
         self.n = 0.01
@@ -14,11 +14,13 @@ class NAND_perceptron:
         # Attempt to load an existing NAND perceptron
         if model != "none":
             self.load(model)
-        else:
-            # Randomize the weights for training
-            self.initialize()
+        # else:
+        # depreciated
+        #     # Randomize the weights for training
+        #     self.initialize()
 
     # Sets all weights to a random value
+    # Depreciated
     def initialize(self):
         for i in range(4):
             self.weights.append(rand.uniform(-1,1))
@@ -34,6 +36,7 @@ class NAND_perceptron:
         self.weighted_sum = np.dot(self.weights, x) + self.bias
         return 1 if self.weighted_sum >= 0 else 1
     
+    # depreciated
     def fit(self, features, label):
         self.pred = self.activate(features)
 
@@ -41,7 +44,8 @@ class NAND_perceptron:
         self.weights += self.n * self.error * features
         self.bias += self.n * self.error
         return 1 if self.error == 0 else 0
-        
+
+    # depreciated   
     def predict(self, x):
         self.pred = self.activate(x)
         return self.pred
@@ -56,7 +60,7 @@ class NAND_perceptron:
 # Handles perceptrons found in a layer of a model
 # perceptrons - A list of one or more perceptron objects
 class layer:
-    def __init__(self, perceptrons: list[NAND_perceptron]):
+    def __init__(self, perceptrons: list[NAND_perceptron] = []):
         self.nodes = perceptrons
         self.size = len(self.nodes)
 
@@ -78,10 +82,14 @@ class layer:
 # Handles layers of perceptrons and training
 # nodeLayers - a list of layer objects
 class model:
-    def __init__(self, nodeLayers):
-        self.layers = nodeLayers
+    def __init__(self, layers = [], npz_file = "none"):
+        self.layers = layers
         self.depth = len(self.layers)
         self.iter_range = 1
+        
+        if npz_file != "none":
+            self.load(npz_file)
+            return
 
     def describe(self, index = -1):
         # Describe all layers in model
@@ -99,7 +107,6 @@ class model:
     # Train the model on a dataset
     # dataset - A pandas dataframe containing all features and labels
     def fit(self, dataset):
-
         for k in range(self.iter_range):
             # Randomize dataset order
             pm = np.random.permutation(dataset.index)
@@ -114,56 +121,84 @@ class model:
                     print(f"evaluating perceptron {p} of layer {l}...\n")
                     for i, feature in enumerate(np.array(sh_features, dtype=float)):
                          print(f"dataset = {feature}, label = {sh_labels[i]}")
-                    # # ensure feature is np array
-                    #     x = np.array(feature, dtype=float)
-                    # # activate perceptron
-                    #     perceptron.fit(x, sh_labels[i])
 
-                    #     if perceptron.pred == sh_labels[i]:
-                    #         hit += 1
-                    # print(f"Layer [{layer}], {hit} out of {dataset.shape[0]}")
-                    # hit = 0
-
+    # Layer X, Node Y = weights and bias
     def save(self, npz_file):
         model_data = {}
         for l, layer in enumerate(self.layers):
             for n, node in enumerate(layer.nodes):
                 model_data[f"L{l}_N{n}_weights"] = node.weights
                 model_data[f"L{l}_N{n}_bias"] = node.bias
-        np.savez(npz_file, **model_data)
+        np.savez(npz_file, **model_data, model_depth=int(self.depth))
 
+    # Load in the same fashion as save. Update: nevermind
+    # https://www.reddit.com/r/gifs/comments/26aikq/there_has_to_be_a_better_way/
     def load(self, npz_file):
+        print("LOADING MODEL...\n")
         model_data = np.load(npz_file)
-        for l, layer in enumerate(self.layers):
-            for n, node in enumerate(layer.nodes):
-                node.weights = model_data[f"L{l}_N{n}_weights"]
-                node.bias = model_data[f"L{l}_N{n}_bias"]
+        self.depth = model_data["model_depth"]
+        print(f"Loaded depth = {self.depth}")
 
-def main():
-    # Setting up a model w/ 2 layers of 4 perceptrons each
+        for l in range(self.depth):
+            #print(f"Setting layer {l}")
+            newLayer = layer()
+            newLayer.nodes = []
+            newNode_weights = []
+            newNode_bias = 0
+            for key in model_data.keys():
+                #print("Checking keys...")
+                if key.startswith(f"L{l}") and key.endswith("_weights"):
+                    #print(f"Weight hit for layer {l} with:\n  {key}")
+                    newNode_weights = model_data[key]
+                if key.startswith(f"L{l}") and key.endswith("_bias"):
+                    #print(f"Bias hit for layer {l} with:\n  {key}")
+                    newNode_bias = model_data[key]
+                if newNode_weights is not None and newNode_bias is not 0:
+                    #print(f"Finalizing node for layer {l}\n")
+                    node = NAND_perceptron(newNode_weights, newNode_bias)
+                    newLayer.nodes.append(node)
+                    newNode_weights = []
+                    newNode_bias = 0
+            #print(f"---Finalizing layer {l}---\n")
+            self.layers.append(newLayer)
+
+# Create a model l layers deep with n perceptrons per layer
+def debugGenerateModel(l, n):
     pList = []
     lList = []
-    layers = 2
-    perceptrons = 4
+    layers = l
+    perceptrons = n
     for i in range(layers):
         for i in range(perceptrons):
-            p = NAND_perceptron()
+            weights = []
+            for j in range(4):
+                weights.append(rand.uniform(-1,1))
+            p = NAND_perceptron(weights, rand.uniform(-1,1))
             pList.append(p)
         lList.append(layer(pList))
         pList = []
     m = model(lList)
+    return m
+
+def debugLoadModel(file):
+    m = model([], file)
+    return m
+
+def main():
+    # Setting up a model w/ 2 layers of 4 perceptrons each
+    m = debugGenerateModel(2, 4)
+    print(m.describe())
+    m.save("NAND_model_test.npz")
+    m.load("NAND_model_test.npz")
+    print(m.describe())
+
+    # Loading to instantiate
+    m2 = debugLoadModel("NAND_model_test.npz")
+    print(m2.describe())
+
 
     # Dataset
     df = pd.read_csv("NAND_model_dataset.csv")
-
-    m.save("NAND_model_test.npz")
-    m.describe()
-    m.load("NAND_model_test.npz")
-    m.describe()
-
-    #results = m.fit(df)
-
-    #print(f"Model accuracy: {results * 100:.2f}%")
 
 if __name__ == "__main__":
     main()
