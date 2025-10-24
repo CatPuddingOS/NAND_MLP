@@ -48,4 +48,41 @@ THE QUESTION:
        to learn new behavior? So more are present to potentially capture the behavior? As a perceptron model, 
        it is likely irrelevant. This concept is likely better suited for sigmoid models, though I should do
        more research. For now, having multiple nodes per layer is good for practice on my part.
-     - 
+
+10/23:
+  Whoops
+    * My datasets were never sending in the first row of information
+      1,1,1,1 = 0 was not being evaluated becasue I neglected to include column identifiers
+      Oopsie
+
+  On the current content
+    * Fit seems to be hitting all perceptrson correctly and talking to related functions as expected.
+      Next up are forward functions to link up nodes and send outputs for actual guessing to take place.
+        - Update: that didn't happen. Forward is just a part of fit now...
+
+10/24:
+  Fundamental misunderstandings
+    * I have an obvious misunderstanding of ho layers operate in the grand scheme of a model or at least
+      what the terminology signifies. A "two layer perceptron" is one such that the model contains:
+      1. The input layer
+        - No computation, just data from a user or dataset
+      2. Hidden layer
+        - Layer of one or more nodes that can be activated to return a dot product of weights and inputs
+      3. Output layer
+        - Group of one or more nodes that can be activated to return the final guess of the model
+    
+    * I need to rewrite a lot of what I have
+
+    * More plateaus in return values for fit. Everything seems to be in order. My guess is that 0.5 contributes
+      too much to the dot. More layers might be the way to go? I'm a little lost at this point.
+
+    Idea: 
+      - Create something that looks for plateaus in guess rates. Once a plateau is "found," add another layer
+        of nodes to the model. Another layer may or may not figure this out.
+        My guess is that the model will eventually converge or explode into a massive array of nodes. RAM useage
+        will tell once I'm done.
+      
+    * Run 100 trials with a sub 100% rate ? layers += debugGenerateLayer(x)
+      - Add 1 layer with x perceptrons @ 4 inputs each 
+    * Absolutely did not work. Same issue with even stranger results with 100+ layers of 4 perceptrons.
+
