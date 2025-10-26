@@ -15,7 +15,7 @@ A CONTINUATION OF NAND MODEL TRAINING
         - creates a nice hierarchy
 
 THE QUESTION:
-    Can what was failed by the single perceptron be achieved by a 2 layer perceptron by using the same dataset.
+    Can what was failed by the single perceptron be achieved by a 2 layer perceptron by using the same dataset. SPOILER: Not in any way I've thought of
     * I'm looking for understanding of a decimal that's been included into the set, 0.5.
       The single perceptron bacame incredibly confused and experienced platueas in guess rates.
       My hope is that this will be avoided with this new model.
@@ -85,4 +85,12 @@ THE QUESTION:
     * Run 100 trials with a sub 100% rate ? layers += debugGenerateLayer(x)
       - Add 1 layer with x perceptrons @ 4 inputs each 
     * Absolutely did not work. Same issue with even stranger results with 100+ layers of 4 perceptrons.
+
+10/25:
+  Project is mostly dead at this point, any further work will be for entertainment
+  * Some fun things i've figured out. The finctionality of creating other gates from NAND is retained
+    AND is a flip of NAND, so passing the output of 4 NAND perceptrons to a single perceptron as input 
+    yields AND functionality. Likewise for other tested structures
+
+  * Beyond this, I'm chalking this up to a flop. Will clean up and play w/ Simoid activation
 

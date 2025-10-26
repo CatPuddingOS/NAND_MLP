@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import random as rand
+import sys
 
 class NAND_perceptron:
     def __init__(self, weights, bias, model = "none"):
@@ -14,15 +15,10 @@ class NAND_perceptron:
         # Attempt to load an existing NAND perceptron
         if model != "none":
             self.load(model)
-        # else:
-        # depreciated
-        #     # Randomize the weights for training
-        #     self.initialize()
 
     # Sets all weights to a random value
     def initialize(self):
-        for i in range(4):
-            self.weights.append(rand.uniform(-1,1))
+        self.weights = np.random.uniform(-1,1,size=4)
 
     # Activation for vector input
     def activate(self, x):
@@ -37,11 +33,16 @@ class NAND_perceptron:
         self.error = label - self.pred
         self.weights += self.n * self.error * features
         self.bias += self.n * self.error
-        return 1 if self.error == 0 else 0
+        return self.pred # Initially returned pred based on error for some reason. Fixed training
   
-    def predict(self, x):
-        self.pred = self.activate(x)
+    def predict(self, features):
+        self.pred = self.activate(features)
         return self.pred
+
+    def load(self, model_npz):
+        model_data = np.load(model_npz)
+        self.weights = model_data["weights"]
+        self.bias = model_data["bias"]
 
     def describe(self):
         weights = ""
@@ -114,44 +115,33 @@ class model:
     # Train the model on a dataset
     # dataset - A pandas dataframe containing all features and labels
     def fit(self, dataset):
-        for k in range(self.fit_range):
+        for k in range(1):
             # Randomize dataset order
             pm = np.random.permutation(dataset.index)
             sh_features = dataset.iloc[pm, :-1].to_numpy(dtype=float)
             sh_labels = dataset.iloc[pm, -1].to_numpy(dtype=int)
 
-            total_hits = 0
+            correct = 0
+            guesses = []
+            finalOutput = 0
             for i, feature in enumerate(sh_features):
-                # Should be a better way of cycling all but the last layer
-                inputs = feature
-                for l in range(self.depth - 1): # self.depth = len(layers), -1 = all but last
-                    current_layer = self.layers[l]
-                    outputs = []
-                    for perceptron in current_layer.nodes: # Grab each node in layer
-                        print(f"Check in layer {l}")
-                        output = perceptron.predict(inputs) # produce a prediction with the current node
-                        outputs.append(output)  # Collect output in a list
-                    inputs = np.array(outputs, dtype=float) # Prep inputs for next layer
-
-                output_layer = self.layers[-1] # last layer of the list will be the output layer
-                for perceptron in output_layer.nodes:   # Should only be one node, but scalability could be nice
-                    print(f"Check in output...")
-                    hit = perceptron.fit(inputs, sh_labels[i]) # this perceptron should FIT
-                    if hit != sh_labels[i]:
-                        print(f"Missed on input {feature} | Expected {sh_labels[i]}, got {perceptron.pred}")
-                    total_hits += hit # if 
-
-            # Calculate cycle accuracy
-            accuracy = total_hits / len(dataset)
-            print(f"Cycle {k + 1}/{self.fit_range} | Accuracy: {accuracy:.3f}")
-            # Failed
-            # if k == self.fit_range - 1:
-            #     print("contingency!!!")
-            #     self.debugAddLayer(1)
-            #     self.fit(dataset)
-            # elif accuracy == 1.0:
-            #     print("Training complete with 100% accuracy!")
-            #     break
+                guesses = []
+                finalOutput = 0
+                print(f"Trying: {feature}")
+                for l in range(self.depth - 1):
+                    thisLayer = self.layers[l]
+                    for node in thisLayer.nodes:
+                        # have layer make predictions
+                        guess = node.predict(feature)
+                        guesses.append(guess)
+                        # pass predictions to next layer as the inputs
+                    for node in self.layers[l+1].nodes:
+                        next = node.predict(guesses)
+                        if next == sh_labels[i]:
+                            correct+=1
+                        print(f"Guesses: {guesses}, Final Output: {next}, Expected: {sh_labels[i]}")
+            accuracy = correct / len(sh_features)
+            print(accuracy * 100)
                         
     # Layer X, Node Y = weights and bias
     def save(self, npz_file):
@@ -195,7 +185,7 @@ class model:
             self.layers.append(newLayer)
 
 # Create a model l layers deep with n perceptrons per hidden layer and 1 perceptron on the last layer
-def debugGenerateModel(l, n):
+def debugGenerateModel(l, n, model_npz = "none"):
     pList = []
     lList = []
 
@@ -204,7 +194,7 @@ def debugGenerateModel(l, n):
             weights = []
             for j in range(4):
                 weights.append(rand.uniform(-1,1))
-            p = NAND_perceptron(weights, rand.uniform(-1,1))
+            p = NAND_perceptron(weights, rand.uniform(-1,1), model_npz)
             pList.append(p)
         lList.append(layer(pList))
         pList = []
@@ -213,41 +203,20 @@ def debugGenerateModel(l, n):
     weights = []
     for i in range(4):
         weights.append(rand.uniform(-1,1))
-    p = [NAND_perceptron(weights, rand.uniform(-1,1))] # even one must be passed as a list because foresight
+    p = [NAND_perceptron(weights, rand.uniform(-1,1), model_npz)] # even one must be passed as a list because foresight
     lList.append(layer(p))
     m = model(lList)
     return m
-
-    # layers = l
-    # perceptrons = n
-    # for i in range(layers):
-    #     for i in range(perceptrons):
-    #         weights = []
-    #         for j in range(4):
-    #             weights.append(rand.uniform(-1,1))
-    #         p = NAND_perceptron(weights, rand.uniform(-1,1))
-    #         pList.append(p)
-    #     lList.append(layer(pList))
-    #     pList = []
-    # m = model(lList)
-    # return m
 
 def debugLoadModel(file):
     m = model([], file)
     return m
 
 def main():
-    # checking for errors in save() and load()
-    m3 = debugGenerateModel(2, 4)
-    #m3.save("NAND_MODEL.npz")
-    ##print(m3.describe())
-    #m3 = debugLoadModel("NAND_MODEL.npz")
-    #print(m3.describe())
-    
-    #Checking for errors in fit()
-    df = pd.read_csv("Xor_Dataset.csv")
-    print(m3.fit(df))
-    m3.save("Xor_MODEL.npz") # XOR could also not be learned
+    m3 = debugGenerateModel(2, 4, "NAND_single_params.npz")
+
+    df = pd.read_csv("AND.csv")
+    m3.fit(df)
 
 if __name__ == "__main__":
     main()
